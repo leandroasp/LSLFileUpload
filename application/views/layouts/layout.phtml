@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Example Upload</title>
+
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" >
+  <meta http-equiv="Content-Language" content="en" >
+  <meta charset="UTF-8">
+
+  <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
+
+  <link href="<?php echo $this->baseUrl('/css/bootstrap.css') ?>" rel="stylesheet" type="text/css" >
+  <link href="<?php echo $this->baseUrl('/css/sys.css') ?>" rel="stylesheet" type="text/css" >
+  <link href="<?php echo $this->baseUrl('/js/jquery.ui.plupload/css/jquery.ui.plupload.css') ?>" rel="stylesheet" type="text/css" />
+
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+  <script type="text/javascript" src="<?php echo $this->baseUrl('/js/bootstrap.min.js') ?>"></script>
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/jquery-ui.min.js"></script>
+  <script type="text/javascript" src="http://bp.yahooapis.com/2.4.21/browserplus-min.js"></script>
+
+  <script type="text/javascript" src="<?php echo $this->baseUrl('/js/plupload.js') ?>"></script>
+  <script type="text/javascript" src="<?php echo $this->baseUrl('/js/plupload.gears.js') ?>"></script>
+  <script type="text/javascript" src="<?php echo $this->baseUrl('/js/plupload.silverlight.js') ?>"></script>
+  <script type="text/javascript" src="<?php echo $this->baseUrl('/js/plupload.flash.js') ?>"></script>
+  <script type="text/javascript" src="<?php echo $this->baseUrl('/js/plupload.browserplus.js') ?>"></script>
+  <script type="text/javascript" src="<?php echo $this->baseUrl('/js/plupload.html4.js') ?>"></script>
+  <script type="text/javascript" src="<?php echo $this->baseUrl('/js/plupload.html5.js') ?>"></script>
+  <script type="text/javascript" src="<?php echo $this->baseUrl('/js/jquery.ui.plupload/jquery.ui.plupload.js') ?>"></script>
+  <!-- <script type="text/javascript" src="<?php echo $this->baseUrl('/js/i18n/pt-br.js') ?>"></script> -->
+</head>
+<body>
+  <div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <a class="brand" href="<?php echo $this->url(array('controller' => 'index'),'default',true); ?>">Example Upload</a>
+        <ul class="nav my-nav" id="menu">
+          <li><a href="<?php echo $this->url(array('controller' => 'index'),'default',true); ?>">Home</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="container">
+<?php echo $this->layout()->content?>
+  </div>
+  <footer class="navbar-fixed-bottom">
+    By Leandro Sales
+  </footer>
+</body>
+</html>

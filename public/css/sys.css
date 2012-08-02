@@ -1,0 +1,18 @@
+body {padding: 40px 0;}
+footer {clear:both;text-align:center;line-height:30px;color:#fff;font-size:0.85em;
+  background: -webkit-linear-gradient(top, #fff, #000);
+  background:    -moz-linear-gradient(top, #fff, #000);
+  background:     -ms-linear-gradient(top, #fff, #000);
+  background:         linear-gradient(top, #fff 50%, #000);
+}
+footer a {text-decoration:underline;color: #fff;}
+
+textarea.my-caption {
+  width: 102px;
+  height: 40px;
+  position: absolute;
+  margin-top:-60px;
+}
+.hidden {
+  visibility: hidden;
+}

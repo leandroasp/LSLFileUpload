@@ -1,0 +1,110 @@
+    <div class="page-header">
+      <h1>Send Photos</h1>
+    </div>
+    <form accept-charset="UTF-8" action="<?php echo $this->url(array('action' => 'create')); ?>" class="form-vertical" id="formUpload" method="post" novalidate="novalidate">
+      <fieldset>
+        <div class="control-group">
+          <label class="control-label" for="name">Name:</label>
+          <div class="controls">
+            <input type="text" class="input-xlarge" name="name" id="name" />
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label" for="email">e-mail:</label>
+          <div class="controls">
+            <input type="text" class="input-xlarge" name="email" id="email" />
+          </div>
+        </div>
+        <div class="control-group" id="uploader">
+          <p>You browser doesn't have Flash, Silverlight, Gears, BrowserPlus or HTML5 support.</p>
+        </div>
+        <ul class="thumbnails" id="thumbnails">
+          <li class="span2 p173kbj1851hdr5mj6lk1vln25j3">
+            <div class="thumbnail">
+              <img src="/files/temp.jpg" width="160" alt="">
+              <div class="caption">
+                <textarea type="text" name="caption_p173kbj1851hdr5mj6lk1vln25j3" value="" class="my-caption hidden"></textarea>
+                <p><a href="#" class="btn btn-mini btn-info fn-crop">Crop</a> <a href="#" class="btn btn-mini btn-info fn-caption">Caption</a></p>
+              </div>
+            </div>
+          </li>
+          <li class="span2 p173kbj1851hdr5mj6lk1vln25j3">
+            <div class="thumbnail">
+              <img src="/files/temp.jpg" width="160" alt="">
+              <div class="caption">
+                <textarea type="text" name="caption_p173kbj1851hdr5mj6lk1vln25j31" value="" class="my-caption hidden"></textarea>
+                <p><a href="#" class="btn btn-mini btn-info fn-crop">Crop</a> <a href="#" class="btn btn-mini btn-info fn-caption">Caption</a></p>
+              </div>
+            </div>
+          </li>
+        </ul>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Send</button>
+        </div>
+      </fieldset>
+    </form>
+<script type="text/javascript">
+// Convert divs to queue widgets when the DOM is ready
+var $thumbnails = $('#thumbnails');
+$(function() {
+	$("#uploader").plupload({
+		// General settings
+		runtimes : 'flash,html5,browserplus,silverlight,gears,html4',
+		url : '<?php echo $this->url(array('action' => 'upload')); ?>',
+		max_file_size : '10mb',
+		max_file_count: 2, // user can add no more then 20 files at a time
+		chunk_size : '1mb',
+		unique_names : true,
+		multiple_queues : true,
+		// Specify what files to browse for
+		filters : [
+			{title : "Image files", extensions : "jpg,gif,png"},
+		],
+
+		// Flash settings
+		flash_swf_url : '<?php echo $this->baseUrl('/js/plupload.flash.swf') ?>',
+
+		// Silverlight settings
+		silverlight_xap_url : '<?php echo $this->baseUrl('/js/plupload.silverlight.xap') ?>',
+    
+    init: {
+			FileUploaded: function(up, file, info) {
+        var html ='<li class="span2 ' + file.id + '">' +
+                  '  <div class="thumbnail">' +
+                  '    <img src="<?php echo $this->baseUrl('/files/temp/') ?>' + file.target_name + '" width="160" alt="" class="img_' + file.id + '" />' +
+                  '    <div class="caption">' +
+                  '      <textarea name="caption_' + file.id + '" class="my-caption hidden"></textarea>' +
+                  '      <p><a href="#" class="btn btn-mini btn-info fn-crop">Crop</a> <a href="#" class="btn btn-mini btn-info fn-caption">Caption</a></p>' +
+                  '    </div>' +
+                  '  </div>' +
+                  '</li>';
+        html = $(html);
+        $thumbnails.append(html);
+        html.find('a.fn-caption').click(function() {
+          $(this).parent().prev().toggleClass('hidden');
+          return false;
+        });
+        html.find('a.fn-crop').click(function() {
+          $(this).parent().prev().toggleClass('hidden');
+          return false;
+        });
+			},
+      FilesRemoved: function(up, files) {
+        plupload.each(files, function(file, i) {
+          $thumbnails.find('li.' + file.id).detach();
+        });
+      }
+    }
+	});
+});
+
+$thumbnails.find('a.fn-caption').click(function() {
+  $(this).parent().prev().toggleClass('hidden');
+  return false;
+});
+$thumbnails.find('a.fn-crop').click(function() {
+  $(this).parent().parent().prev().clone().dialog({ close: function(event, ui) { alert('deu'); } });
+
+  return false;
+});
+</script>
