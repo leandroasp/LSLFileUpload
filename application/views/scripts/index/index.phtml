@@ -3,21 +3,26 @@
     </div>
     <form accept-charset="UTF-8" action="<?php echo $this->url(array('action' => 'create')); ?>" class="form-vertical" id="formUpload" method="post" novalidate="novalidate">
       <fieldset>
-        <div class="control-group">
-          <label class="control-label" for="name">Name:</label>
-          <div class="controls">
-            <input type="text" class="input-xlarge" name="name" id="name" />
+        <div class="row">
+          <div class="span6 control-group">
+            <label class="control-label" for="name">Name:</label>
+            <div class="controls">
+              <input type="text" class="span6" name="name" id="name" />
+              <?php echo $this->form->name ?>
+            </div>
           </div>
-        </div>
-        <div class="control-group">
-          <label class="control-label" for="email">e-mail:</label>
-          <div class="controls">
-            <input type="text" class="input-xlarge" name="email" id="email" />
+          <div class="span6 control-group">
+            <label class="control-label" for="email">e-mail:</label>
+            <div class="controls">
+              <input type="text" class="span6" name="email" id="email" />
+              <?php echo $this->form->email ?>
+            </div>
           </div>
         </div>
         <div class="control-group" id="uploader">
           <p>You browser doesn't have Flash, Silverlight, Gears, BrowserPlus or HTML5 support.</p>
         </div>
+        <?php echo $this->form->uploader_count ?>
         <ul class="thumbnails" id="thumbnails">
         </ul>
         <div class="form-actions">

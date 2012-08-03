@@ -13,6 +13,5 @@ textarea.my-caption {
   position: absolute;
   margin-top:-60px;
 }
-.hidden {
-  visibility: hidden;
-}
+.hidden {visibility: hidden;}
+ul.my-errors li {display:inline;color:red;}
