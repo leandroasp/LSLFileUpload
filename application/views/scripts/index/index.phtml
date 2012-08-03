@@ -19,24 +19,6 @@
           <p>You browser doesn't have Flash, Silverlight, Gears, BrowserPlus or HTML5 support.</p>
         </div>
         <ul class="thumbnails" id="thumbnails">
-          <li class="span2 p173kbj1851hdr5mj6lk1vln25j3">
-            <div class="thumbnail">
-              <img src="/files/temp.jpg" width="160" alt="">
-              <div class="caption">
-                <textarea type="text" name="caption_p173kbj1851hdr5mj6lk1vln25j3" value="" class="my-caption hidden"></textarea>
-                <p><a href="#" class="btn btn-mini btn-info fn-crop">Crop</a> <a href="#" class="btn btn-mini btn-info fn-caption">Caption</a></p>
-              </div>
-            </div>
-          </li>
-          <li class="span2 p173kbj1851hdr5mj6lk1vln25j3">
-            <div class="thumbnail">
-              <img src="/files/temp.jpg" width="160" alt="">
-              <div class="caption">
-                <textarea type="text" name="caption_p173kbj1851hdr5mj6lk1vln25j31" value="" class="my-caption hidden"></textarea>
-                <p><a href="#" class="btn btn-mini btn-info fn-crop">Crop</a> <a href="#" class="btn btn-mini btn-info fn-caption">Caption</a></p>
-              </div>
-            </div>
-          </li>
         </ul>
         <div class="form-actions">
           <button type="submit" class="btn btn-primary">Send</button>
@@ -71,6 +53,7 @@ $(function() {
 			FileUploaded: function(up, file, info) {
         var html ='<li class="span2 ' + file.id + '">' +
                   '  <div class="thumbnail">' +
+                  '    <input type="hidden" name="crop_' + file.id + '" value="" />' +
                   '    <img src="<?php echo $this->baseUrl('/files/temp/') ?>' + file.target_name + '" width="160" alt="" class="img_' + file.id + '" />' +
                   '    <div class="caption">' +
                   '      <textarea name="caption_' + file.id + '" class="my-caption hidden"></textarea>' +
@@ -80,14 +63,8 @@ $(function() {
                   '</li>';
         html = $(html);
         $thumbnails.append(html);
-        html.find('a.fn-caption').click(function() {
-          $(this).parent().prev().toggleClass('hidden');
-          return false;
-        });
-        html.find('a.fn-crop').click(function() {
-          $(this).parent().prev().toggleClass('hidden');
-          return false;
-        });
+        showHideCaption(html.find('a.fn-caption'));
+        addCropImage(html.find('a.fn-crop'));
 			},
       FilesRemoved: function(up, files) {
         plupload.each(files, function(file, i) {
@@ -98,13 +75,78 @@ $(function() {
 	});
 });
 
-$thumbnails.find('a.fn-caption').click(function() {
-  $(this).parent().prev().toggleClass('hidden');
-  return false;
-});
-$thumbnails.find('a.fn-crop').click(function() {
-  $(this).parent().parent().prev().clone().dialog({ close: function(event, ui) { alert('deu'); } });
+function showHideCaption($element) {
+  $element.click(function() {
+    $(this).parent().prev().toggleClass('hidden');
+    return false;
+  });
+}
+showHideCaption($thumbnails.find('a.fn-caption'));
 
-  return false;
-});
+var dialogsInPage = new Array();
+function addCropImage($element) {
+  $element.click(function() {
+    var $img = $(this).parent().parent().prev();
+    var $input = $img.prev();
+    var c = $img.attr('class');
+    
+    var $newImg = null;
+    if (dialogsInPage[c]) {
+      $newImg = dialogsInPage[c];
+      if ($newImg.dialog('isOpen')) {
+        $newImg.dialog('close');
+      } else {
+        $newImg.dialog('open');
+      }
+    } else {
+      $newImg = $img.clone();
+      $newImg.removeAttr('width');
+      $newImg.load(function() {
+        var width = $newImg.width();
+        var height = $newImg.height();
+        
+        $newImg.attr('id',c);
+        $newImg.attr('width',width);
+
+        $newImg.dialog({
+          close: function(event, ui) {
+          },
+          create: function(event, ui) {
+          },
+          open: function(event, ui) {
+            var coords = $input.val();
+            if (coords == '') {
+              coords = [0,0,width,height];
+            } else {
+              coords = coords.split(';');
+            }
+            $(this).Jcrop({
+              onSelect: function(c) {
+                $input.val(Math.round(c.x) + ';' + Math.round(c.y) + ';' + Math.round(c.x2) + ';' + Math.round(c.y2));
+              },
+              setSelect: coords,
+              aspectRatio: 4/3
+            });
+            $(this).css({display:'none'});
+          },
+          title: "Crop the image",
+          resizable: false,
+          position: ["center","center"],
+          width: width+28,
+          zIndex: 2000,
+          show: "slide",
+          hide: "slide"
+        });
+      });
+      $('body').append($newImg);
+      dialogsInPage[c] = $newImg;
+    }
+    return false;
+  });
+}
+addCropImage($thumbnails.find('a.fn-crop'));
+
+function updateCoords(c) {
+  
+}
 </script>
