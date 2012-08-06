@@ -53,7 +53,7 @@ $(function() {
 
 		// Silverlight settings
 		silverlight_xap_url : '<?php echo $this->baseUrl('/js/plupload.silverlight.xap') ?>',
-    
+
     init: {
 			FileUploaded: function(up, file, info) {
         var html ='<li class="span2 ' + file.id + '">' +
@@ -94,7 +94,7 @@ function addCropImage($element) {
     var $img = $(this).parent().parent().prev();
     var $input = $img.prev();
     var c = $img.attr('class');
-    
+
     var $newImg = null;
     if (dialogsInPage[c]) {
       $newImg = dialogsInPage[c];
@@ -109,15 +109,11 @@ function addCropImage($element) {
       $newImg.load(function() {
         var width = $newImg.width();
         var height = $newImg.height();
-        
+
         $newImg.attr('id',c);
         $newImg.attr('width',width);
 
         $newImg.dialog({
-          close: function(event, ui) {
-          },
-          create: function(event, ui) {
-          },
           open: function(event, ui) {
             var coords = $input.val();
             if (coords == '') {
@@ -138,6 +134,7 @@ function addCropImage($element) {
           resizable: false,
           position: ["center","center"],
           width: width+28,
+          minHeight: 1,
           zIndex: 2000,
           show: "slide",
           hide: "slide"
@@ -150,8 +147,4 @@ function addCropImage($element) {
   });
 }
 addCropImage($thumbnails.find('a.fn-crop'));
-
-function updateCoords(c) {
-  
-}
 </script>
