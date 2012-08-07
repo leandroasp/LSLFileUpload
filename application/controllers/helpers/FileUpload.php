@@ -8,16 +8,16 @@
  * This file is part of LSL FileUpload.
  *
  * LSL FileUpload is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * LSL FileUpload is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with LSL FileUpload.  If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -174,10 +174,11 @@ class Zend_Controller_Action_Helper_FileUpload extends Zend_Controller_Action_He
       if ($crop != '') {
         list($x1,$y1,$x2,$y2) = preg_split('/;/',$crop);
       }
-      if (preg_match('/\D/',$x1)) $x1 = 0;
-      if (preg_match('/\D/',$y1)) $y1 = 0;
-      if (preg_match('/\D/',$x2)) $x2 = $w;
-      if (preg_match('/\D/',$y2)) $y2 = $h;
+
+      if (!preg_match('/^\d+$/',$x1)) $x1 = 0;
+      if (!preg_match('/^\d+$/',$y1)) $y1 = 0;
+      if (!preg_match('/^\d+$/',$x2)) $x2 = $w;
+      if (!preg_match('/^\d+$/',$y2)) $y2 = $h;
 
       if ($type == 1) $sourceImg = imagecreatefromgif($sourceFile);
       elseif ($type == 3) $sourceImg = imagecreatefrompng($sourceFile);
