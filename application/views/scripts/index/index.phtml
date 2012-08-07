@@ -29,120 +29,19 @@
       </fieldset>
     </form>
 <script type="text/javascript">
-// Convert divs to queue widgets when the DOM is ready
-var $thumbnails = $('#thumbnails');
-$(function() {
-	$("#uploader").plupload({
-		// General settings
-		runtimes : 'flash,html5,browserplus,silverlight,gears,html4',
-		url : '<?php echo $this->url(array('action' => 'upload')); ?>',
-		max_file_size : '10mb',
-		max_file_count: 2, // user can add no more then 20 files at a time
-		chunk_size : '1mb',
-		unique_names : true,
-		multiple_queues : true,
-		// Specify what files to browse for
-		filters : [
-			{title : "Image files", extensions : "jpg,gif,png"},
-		],
-
-		// Flash settings
-		flash_swf_url : '<?php echo $this->baseUrl('/js/plupload.flash.swf') ?>',
-
-		// Silverlight settings
-		silverlight_xap_url : '<?php echo $this->baseUrl('/js/plupload.silverlight.xap') ?>',
-
-    init: {
-			FileUploaded: function(up, file, info) {
-        var html ='<li class="span2 ' + file.id + '">' +
-                  '  <div class="thumbnail">' +
-                  '    <input type="hidden" name="crop_' + file.id + '" value="" />' +
-                  '    <img src="<?php echo $this->baseUrl('/files/temp/') ?>' + file.target_name + '" width="160" alt="" class="img_' + file.id + '" />' +
-                  '    <div class="caption">' +
-                  '      <textarea name="caption_' + file.id + '" class="my-caption hidden"></textarea>' +
-                  '      <p><a href="#" class="btn btn-mini btn-info fn-crop">Crop</a> <a href="#" class="btn btn-mini btn-info fn-caption">Caption</a></p>' +
-                  '    </div>' +
-                  '  </div>' +
-                  '</li>';
-        html = $(html);
-        $thumbnails.append(html);
-        showHideCaption(html.find('a.fn-caption'));
-        addCropImage(html.find('a.fn-crop'));
-			},
-      FilesRemoved: function(up, files) {
-        plupload.each(files, function(file, i) {
-          $thumbnails.find('li.' + file.id).detach();
-        });
-      }
-    }
-	});
+<!--
+LSLFileUpload({
+  uploader: $("#uploader"),
+  thumbnails: $('#thumbnails'),
+  url: '<?php echo $this->url(array('action' => 'upload')); ?>',
+  max_file_size: '10mb',
+  max_file_count: 2,
+  extensions: 'jpg,gif,png',
+  base_url: '<?php echo $this->baseUrl() ?>',
+  temp_dir: '<?php echo $this->baseUrl('/files/temp/') ?>',
+  with_caption: true,
+  with_crop: true,
+  aspect_ratio: 4/3
 });
-
-function showHideCaption($element) {
-  $element.click(function() {
-    $(this).parent().prev().toggleClass('hidden');
-    return false;
-  });
-}
-showHideCaption($thumbnails.find('a.fn-caption'));
-
-var dialogsInPage = new Array();
-function addCropImage($element) {
-  $element.click(function() {
-    var $img = $(this).parent().parent().prev();
-    var $input = $img.prev();
-    var c = $img.attr('class');
-
-    var $newImg = null;
-    if (dialogsInPage[c]) {
-      $newImg = dialogsInPage[c];
-      if ($newImg.dialog('isOpen')) {
-        $newImg.dialog('close');
-      } else {
-        $newImg.dialog('open');
-      }
-    } else {
-      $newImg = $img.clone();
-      $newImg.removeAttr('width');
-      $newImg.load(function() {
-        var width = $newImg.width();
-        var height = $newImg.height();
-
-        $newImg.attr('id',c);
-        $newImg.attr('width',width);
-
-        $newImg.dialog({
-          open: function(event, ui) {
-            var coords = $input.val();
-            if (coords == '') {
-              coords = [0,0,width,height];
-            } else {
-              coords = coords.split(';');
-            }
-            $(this).Jcrop({
-              onSelect: function(c) {
-                $input.val(Math.round(c.x) + ';' + Math.round(c.y) + ';' + Math.round(c.x2) + ';' + Math.round(c.y2));
-              },
-              setSelect: coords,
-              aspectRatio: 4/3
-            });
-            $(this).css({display:'none'});
-          },
-          title: "Crop the image",
-          resizable: false,
-          position: ["center","center"],
-          width: width+28,
-          minHeight: 1,
-          zIndex: 2000,
-          show: "slide",
-          hide: "slide"
-        });
-      });
-      $('body').append($newImg);
-      dialogsInPage[c] = $newImg;
-    }
-    return false;
-  });
-}
-addCropImage($thumbnails.find('a.fn-crop'));
+-->
 </script>
