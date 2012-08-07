@@ -23,6 +23,8 @@
 
 class Application_Form_Example extends Zend_Form
 {
+  private $_id = -1;
+
   public function init()
   {
     $name = new Zend_Form_Element_Text('name');
@@ -41,15 +43,20 @@ class Application_Form_Example extends Zend_Form
             array('Errors', array('class' => 'unstyled my-errors'))))
           ->setLabel('e-mail:');
 
-    $count = new Zend_Form_Element_Text('uploader_count');
+    $count = new Zend_Form_Element_Text('my_upload_count');
     $count->setRequired(true)
           ->setIgnore(true)
           ->setDecorators(array(array('Errors', array('class' => 'unstyled my-errors'))))
-          ->addValidator('GreaterThan', false, array('min' => 0));
+          ->addValidator('GreaterThan', false, array('min' => 0, 'messages' => array('notGreaterThan' => 'Send at least one file')));
 
     $this->setMethod('post')
          ->addElements(array($name, $email, $count));
 
     return $this;
+  }
+  
+  public function setId($id)
+  {
+    $this->_id = $id;
   }
 }

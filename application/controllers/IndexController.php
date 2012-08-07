@@ -53,10 +53,12 @@ class IndexController extends Zend_Controller_Action
     $form = new Application_Form_Example();
     if ($form->isValid($this->getRequest()->getPost())) {
       $names = $this->getHelper('FileUpload')->getUploadNames(
-        $form->uploader_count->getValue(),
-        realpath(APPLICATION_PATH . "/../public/files"),
-        realpath(APPLICATION_PATH . "/../public/files/temp"),
-        $this->_thumbnails);
+        array(
+          'targetDir' => realpath(APPLICATION_PATH . "/../public/files"),
+          'sourceDir' => realpath(APPLICATION_PATH . "/../public/files/temp"),
+          'thumbnails'=> $this->_thumbnails
+        )
+      );
 
       echo '<pre>';
       print_r($names);
@@ -72,20 +74,22 @@ class IndexController extends Zend_Controller_Action
 
   public function editAction()
   {
-    //simulando dados vindo do banco de dados
+    //simulating data from the database
     $row = array(
       array('img' => '201208/p173soqujqthsgli15i31avc18dm3.jpg','caption' => 'Teste1'),
       array('img' => '201208/p173v7ssb716cgfnootnmn51jsj3g.jpg','caption' => 'Teste2'),
     );
 
-    $form = new Application_Form_Example();
+    $form = new Application_Form_Example(array('id' => 1));
     if ($this->getRequest()->isPost()) {
       if ($form->isValid($this->getRequest()->getPost())) {
         $names = $this->getHelper('FileUpload')->getUploadNames(
-          $form->uploader_count->getValue(),
-          realpath(APPLICATION_PATH . "/../public/files"),
-          realpath(APPLICATION_PATH . "/../public/files/temp"),
-          $this->_thumbnails);
+          array(
+            'targetDir' => realpath(APPLICATION_PATH . "/../public/files"),
+            'sourceDir' => realpath(APPLICATION_PATH . "/../public/files/temp"),
+            'thumbnails'=> $this->_thumbnails
+          )
+        );
 
         echo '<pre>';
         print_r($names);
@@ -93,7 +97,7 @@ class IndexController extends Zend_Controller_Action
         echo '<pre>';
         print_r($_REQUEST);
         echo '</pre>';
-        return $this;
+        return $this->render('create');
       } else {
 
       }
@@ -114,10 +118,12 @@ class IndexController extends Zend_Controller_Action
     $this->getHelper('layout')->disableLayout();
     $this->getHelper('viewRenderer')->setNoRender();
 
-    return $this->getHelper('FileUpload')->makeUpload(array(
+    echo $this->getHelper('FileUpload')->makeUpload(array(
       'targetDir' => realpath(APPLICATION_PATH . "/../public/files/temp"),
       'cleanupTargetDir' => true,
-      'maxFileAge' => 3600
+      'maxFileAge' => 3600,
+      'maxWidth' => 1024,
+      'maxHeight' => 768
     ));
   }
 }

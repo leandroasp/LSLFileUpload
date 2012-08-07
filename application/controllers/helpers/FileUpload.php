@@ -31,18 +31,21 @@ class Zend_Controller_Action_Helper_FileUpload extends Zend_Controller_Action_He
     header("Cache-Control: post-check=0, pre-check=0", false);
     header("Pragma: no-cache");
 
-    array_merge(array(
-      'targetDir' => APPLICATION_PATH,
-      'cleanupTargetDir' => true,
-      'maxFileAge' => 3600), $options);
+    $options = array_merge(
+      array(
+        'targetDir' => APPLICATION_PATH,
+        'cleanupTargetDir' => true,
+        'maxFileAge' => 3600
+      ),
+      $options);
 
     $targetDir = $options['targetDir'];
     $cleanupTargetDir = $options['cleanupTargetDir']; // Remove old files
     $maxFileAge = $options['maxFileAge']; // Temp file age in seconds
 
-    $chunk = isset($_POST["chunk"]) ? intval($_POST["chunk"]) : 0;
-    $chunks = isset($_POST["chunks"]) ? intval($_POST["chunks"]) : 0;
-    $fileName = isset($_POST["name"]) ? $_POST["name"] : '';
+    $chunk = $this->getRequest()->getPost("chunk") != '' ? intval($this->getRequest()->getPost("chunk")) : 0;
+    $chunks = $this->getRequest()->getPost("chunks") != '' ? intval($this->getRequest()->getPost("chunks")) : 0;
+    $fileName = $this->getRequest()->getPost("name");
 
     $fileName = preg_replace('/[^\w\._]+/', '_', $fileName);
 
@@ -136,14 +139,59 @@ class Zend_Controller_Action_Helper_FileUpload extends Zend_Controller_Action_He
     if (!$chunks || $chunk == $chunks - 1) {
       // Strip the temp .part suffix off 
       rename("{$filePath}.part", $filePath);
+
+      //Crop the image
+      if (isset($options['maxWidth']) || isset($options['maxHeight'])) {
+        $ext = strtolower(preg_replace('/^.+\.([^\.]+)$/','$1',$filePath));
+        if (in_array($ext,array('jpg','png','gif'))) {
+          list($w, $h, $type) = getimagesize($filePath);
+          if ($type == 1) $sourceImg = imagecreatefromgif($filePath);
+          elseif ($type == 3) $sourceImg = imagecreatefrompng($filePath);
+          else $sourceImg = imagecreatefromjpeg($filePath);
+
+          if (isset($options['maxWidth'])) $width = intval($options['maxWidth']);
+          if (isset($options['maxHeight'])) $height = intval($options['maxHeight']);
+          if ($width <= 0 || $width > $w) $width = $w;
+          if ($height <= 0 || $height > $h) $height = $h;
+
+          $x = $y = 0;
+
+          $sourceRatio = $w/$h;
+          $dstRatio = $width/$height;
+          if ($sourceRatio > $dstRatio) {
+            $tempW = round($h * $dstRatio);
+            $x1 = round(($w-$tempW)/2);
+            $w = $tempW;
+          } else if($sourceRatio < $dstRatio) {
+            $tempH = round($w / $dstRatio);
+            $y = round(($h-$tempH)/2);
+            $h = $tempH;
+          }
+
+          $targetImg = imagecreatetruecolor($width, $height);
+          imagecopyresampled($targetImg,$sourceImg,0,0,$x,$y,$width,$height,$w,$h);
+
+          if ($type == 1) imagegif($targetImg, $filePath);
+          elseif ($type == 3) imagepng($targetImg, $filePath);
+          else imagejpeg($targetImg, $filePath, 100);
+
+          imagedestroy($targetImg);
+          imagedestroy($sourceImg);
+        }
+      }
     }
 
     // Return JSON-RPC response
     return '{"jsonrpc" : "2.0", "result" : null}';
   }
 
-  public function getUploadNames($count, $targetDir, $sourceDir, $thumbnails = null)
+  public function getUploadNames($opt)
   {
+    $targetDir = $sourceDir = $thumbnails = '';
+    if (isset($opt['targetDir']))  $targetDir = $opt['targetDir'];
+    if (isset($opt['sourceDir']))  $sourceDir = $opt['sourceDir'];
+    if (isset($opt['thumbnails'])) $thumbnails = $opt['thumbnails'];
+    
     $month = date("Ym");
 
     if (!file_exists($targetDir . '/' . $month . '/')) {
@@ -152,19 +200,31 @@ class Zend_Controller_Action_Helper_FileUpload extends Zend_Controller_Action_He
 
     $targetDir = $targetDir . '/' . $month;
 
-    if (is_null($thumbnails) || !is_array($thumbnails) || count($thumbnails) == 0) {
+    if ($thumbnails == '' || !is_array($thumbnails) || count($thumbnails) == 0) {
       $thumbnails = array(array('append' => ''));
+    } else {
+      $add = true;
+      foreach($thumbnails as $thumb) {
+        if (!isset($thumb['append']) || $thumb['append'] == '') {
+          $add = false;
+          break;
+        }
+      }
+
+      if ($add) array_push($thumbnails,array('append' => ''));
     }
+
+    $count = $this->getRequest()->getPost("uploader_count") != '' ? intval($this->getRequest()->getPost("uploader_count")) : 0;
 
     $names = array();
     for($i = 0; $i < $count; $i++) {
-      if ($_POST['uploader_' . $i . '_status'] != 'done') continue;
+      if ($this->getRequest()->getPost('uploader_' . $i . '_status') != 'done') continue;
 
-      $file = $_POST['uploader_' . $i . '_tmpname'];
+      $file = $this->getRequest()->getPost('uploader_' . $i . '_tmpname');
       $id = preg_replace('/^(.+)\.[^\.]+$/','$1',$file);
       $ext = preg_replace('/^.+\.([^\.]+)$/','$1',$file);
-      $crop = $_POST['crop_' . $id];
-      $caption = $_POST['caption_' . $id];
+      $crop = $this->getRequest()->getPost('crop_' . $id);
+      $caption = $this->getRequest()->getPost('caption_' . $id);
 
       $sourceFile = $sourceDir . '/' . $file;
 
@@ -228,7 +288,9 @@ class Zend_Controller_Action_Helper_FileUpload extends Zend_Controller_Action_He
         if ($thumb['append'] != '') {
           $n['name_' . $thumb['append']] = $month . '/' . $id . $thumb['append'] . '.' . $ext;
         }
+        imagedestroy($targetImg);
       }
+      imagedestroy($sourceImg);
 
       array_push($names,$n);
     }
@@ -240,20 +302,22 @@ class Zend_Controller_Action_Helper_FileUpload extends Zend_Controller_Action_He
   {
     $opt = array('name' => 'name','caption' => 'caption');
 
-    array_merge($opt, $fields);
+    $opt = array_merge($opt, $fields);
 
     $images = array();
     for ($i = 0; $i < count($row); $i++) {
-      if ($_POST['uploaded_' . $i . '_tmpname'] != '') {
-        $r[$i][$opt['name']] = $_POST['uploaded_' . $i . '_tmpname'];
-        $r[$i][$opt['caption']] = $_POST['caption_' . preg_replace('/^.+\/(.+)\.[^\.]+$/','$1',$r[$i][$opt['name']])];
+      if ($this->getRequest()->getPost('uploaded_' . $i . '_tmpname') != '') {
+        $row[$i][$opt['name']] = $this->getRequest()->getPost('uploaded_' . $i . '_tmpname');
+        $row[$i][$opt['caption']] = $this->getRequest()->getPost('caption_' . preg_replace('/^.+\/(.+)\.[^\.]+$/','$1',$r[$i][$opt['name']]));
       }
-      $id = preg_replace('/^.+\/(.+)\.[^\.]+$/','$1',$r[$i][$opt['name']]);
+      $id = preg_replace('/^.+\/(.+)\.[^\.]+$/','$1',$row[$i][$opt['name']]);
       $item = array(
-        'uploaded_' . $i . '_tmpname' => $r[$i][$opt['name']],
-        'uploaded_' . $i . '_status' => $_POST['uploaded_' . $i . '_status'],
-        'crop_' . $id    => $_POST['crop_' . $id],
-        'caption_' . $id => $r[$i][$opt['caption']]
+        'i' => $i,
+        'id' => $id,
+        'uploaded_' . $i . '_tmpname' => $row[$i][$opt['name']],
+        'status_'  . $id => $this->getRequest()->getPost('status_' . $id),
+        'crop_'    . $id => $this->getRequest()->getPost('crop_' . $id),
+        'caption_' . $id => $row[$i][$opt['caption']]
       );
 
       array_push($images, $item);

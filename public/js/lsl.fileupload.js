@@ -80,15 +80,28 @@ function LSLFileUpload(opt) {
           $thumbnails.append(html);
           showHideCaption(html.find('a.fn-caption'));
           addCropImage(html.find('a.fn-crop'));
+          updateInputCount();
         },
         FilesRemoved: function(up, files) {
           plupload.each(files, function(file, i) {
             $thumbnails.find('li.' + file.id).detach();
+            updateInputCount();
           });
         }
       }
     });
   });
+  
+  function updateInputCount() {
+    var $upload_count = $thumbnails.find('input#my_upload_count');
+    var size = $thumbnails.find('li').size();
+    if ($upload_count.size() == 0) {
+      $upload_count = $('<input type="hidden" name="my_upload_count" value="' + size + '" id="my_upload_count" />');
+      $thumbnails.prepend($upload_count);
+    } else {
+      $upload_count.val(size);
+    }
+  }
 
   function showHideCaption($element) {
     $element.click(function() {
