@@ -23,6 +23,20 @@
 
 class IndexController extends Zend_Controller_Action
 {
+
+  private $_thumbnails = array(
+    array(
+      'append' => 'p',
+      'width'  => 40,
+      'height' => 60
+    ),
+    array(
+      'append' => 'g',
+      'width'  => 400,
+      'height' => 300
+    )
+  );
+
   public function init()
   {
     /* Initialize action controller here */
@@ -38,23 +52,11 @@ class IndexController extends Zend_Controller_Action
   {
     $form = new Application_Form_Example();
     if ($form->isValid($this->getRequest()->getPost())) {
-      $thumbnails = array(
-        array(
-          'append' => 'p',
-          'width'  => 40,
-          'height' => 60
-        ),
-        array(
-          'append' => 'g',
-          'width'  => 400,
-          'height' => 300
-        )
-      );
       $names = $this->getHelper('FileUpload')->getUploadNames(
         $form->uploader_count->getValue(),
         realpath(APPLICATION_PATH . "/../public/files"),
         realpath(APPLICATION_PATH . "/../public/files/temp"),
-        $thumbnails);
+        $this->_thumbnails);
 
       echo '<pre>';
       print_r($names);
@@ -66,6 +68,45 @@ class IndexController extends Zend_Controller_Action
     echo '<pre>';
     print_r($_REQUEST);
     echo '</pre>';
+  }
+
+  public function editAction()
+  {
+    //simulando dados vindo do banco de dados
+    $row = array(
+      array('img' => '201208/p173soqujqthsgli15i31avc18dm3.jpg','caption' => 'Teste1'),
+      array('img' => '201208/p173v7ssb716cgfnootnmn51jsj3g.jpg','caption' => 'Teste2'),
+    );
+
+    $form = new Application_Form_Example();
+    if ($this->getRequest()->isPost()) {
+      if ($form->isValid($this->getRequest()->getPost())) {
+        $names = $this->getHelper('FileUpload')->getUploadNames(
+          $form->uploader_count->getValue(),
+          realpath(APPLICATION_PATH . "/../public/files"),
+          realpath(APPLICATION_PATH . "/../public/files/temp"),
+          $this->_thumbnails);
+
+        echo '<pre>';
+        print_r($names);
+        echo '</pre>';
+        echo '<pre>';
+        print_r($_REQUEST);
+        echo '</pre>';
+        return $this;
+      } else {
+
+      }
+    } else {
+      $form->populate(array(
+        'name'  => 'Leandro Sales',
+        'email' => 'leandroasp@gmail.com'
+      ));
+    }
+
+    $this->view->thumbnails = $this->getHelper('FileUpload')->getEditUploaded($row, array('name' => 'img'));
+
+    $this->view->form = $form;
   }
 
   public function uploadAction()

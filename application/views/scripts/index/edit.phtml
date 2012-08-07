@@ -1,7 +1,7 @@
     <div class="page-header">
-      <h1>Send Photos</h1>
+      <h1>Edit Photos</h1>
     </div>
-    <form accept-charset="UTF-8" action="<?php echo $this->url(array('action' => 'create')); ?>" class="form-vertical" id="formUpload" method="post" novalidate="novalidate">
+    <form accept-charset="UTF-8" action="<?php echo $this->url(); ?>" class="form-vertical" id="formUpload" method="post" novalidate="novalidate">
       <fieldset>
         <div class="row">
           <div class="span6 control-group">
@@ -22,6 +22,7 @@
         </div>
         <?php echo $this->form->uploader_count ?>
         <ul class="thumbnails" id="thumbnails">
+
         </ul>
         <div class="form-actions">
           <button type="submit" class="btn btn-primary">Send</button>

@@ -40,9 +40,9 @@ class Zend_Controller_Action_Helper_FileUpload extends Zend_Controller_Action_He
     $cleanupTargetDir = $options['cleanupTargetDir']; // Remove old files
     $maxFileAge = $options['maxFileAge']; // Temp file age in seconds
 
-    $chunk = isset($_REQUEST["chunk"]) ? intval($_REQUEST["chunk"]) : 0;
-    $chunks = isset($_REQUEST["chunks"]) ? intval($_REQUEST["chunks"]) : 0;
-    $fileName = isset($_REQUEST["name"]) ? $_REQUEST["name"] : '';
+    $chunk = isset($_POST["chunk"]) ? intval($_POST["chunk"]) : 0;
+    $chunks = isset($_POST["chunks"]) ? intval($_POST["chunks"]) : 0;
+    $fileName = isset($_POST["name"]) ? $_POST["name"] : '';
 
     $fileName = preg_replace('/[^\w\._]+/', '_', $fileName);
 
@@ -158,13 +158,13 @@ class Zend_Controller_Action_Helper_FileUpload extends Zend_Controller_Action_He
 
     $names = array();
     for($i = 0; $i < $count; $i++) {
-      if ($_REQUEST['uploader_' . $i . '_status'] != 'done') continue;
+      if ($_POST['uploader_' . $i . '_status'] != 'done') continue;
 
-      $file = $_REQUEST['uploader_' . $i . '_tmpname'];
+      $file = $_POST['uploader_' . $i . '_tmpname'];
       $id = preg_replace('/^(.+)\.[^\.]+$/','$1',$file);
       $ext = preg_replace('/^.+\.([^\.]+)$/','$1',$file);
-      $crop = $_REQUEST['crop_' . $id];
-      $caption = $_REQUEST['caption_' . $id];
+      $crop = $_POST['crop_' . $id];
+      $caption = $_POST['caption_' . $id];
 
       $sourceFile = $sourceDir . '/' . $file;
 
@@ -233,5 +233,31 @@ class Zend_Controller_Action_Helper_FileUpload extends Zend_Controller_Action_He
     }
 
     return $names;
+  }
+
+  public function getEditUploaded($row,$fields = array())
+  {
+    $opt = array('name' => 'name','caption' => 'caption');
+
+    array_merge($opt, $fields);
+
+    $images = array();
+    for ($i = 0; $i < count($row); $i++) {
+      if ($_POST['uploaded_' . $i . '_tmpname'] != '') {
+        $r[$i][$opt['name']] = $_POST['uploaded_' . $i . '_tmpname'];
+        $r[$i][$opt['caption']] = $_POST['caption_' . preg_replace('/^.+\/(.+)\.[^\.]+$/','$1',$r[$i][$opt['name']])];
+      }
+      $id = preg_replace('/^.+\/(.+)\.[^\.]+$/','$1',$r[$i][$opt['name']]);
+      $item = array(
+        'uploaded_' . $i . '_tmpname' => $r[$i][$opt['name']],
+        'uploaded_' . $i . '_status' => $_POST['uploaded_' . $i . '_status'],
+        'crop_' . $id    => $_POST['crop_' . $id],
+        'caption_' . $id => $r[$i][$opt['caption']]
+      );
+
+      array_push($images, $item);
+    }
+
+    return $images;
   }
 }
