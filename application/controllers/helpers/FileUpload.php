@@ -35,7 +35,7 @@ class Zend_Controller_Action_Helper_FileUpload extends Zend_Controller_Action_He
       array(
         'targetDir' => APPLICATION_PATH,
         'cleanupTargetDir' => true,
-        'maxFileAge' => 3600
+        'maxFileAge' => 2*3600
       ),
       $options);
 
@@ -43,8 +43,8 @@ class Zend_Controller_Action_Helper_FileUpload extends Zend_Controller_Action_He
     $cleanupTargetDir = $options['cleanupTargetDir']; // Remove old files
     $maxFileAge = $options['maxFileAge']; // Temp file age in seconds
 
-    $chunk = $this->getRequest()->getPost("chunk") != '' ? intval($this->getRequest()->getPost("chunk")) : 0;
-    $chunks = $this->getRequest()->getPost("chunks") != '' ? intval($this->getRequest()->getPost("chunks")) : 0;
+    $chunk = intval($this->getRequest()->getPost("chunk"),0);
+    $chunks = intval($this->getRequest()->getPost("chunks"),0);
     $fileName = $this->getRequest()->getPost("name");
 
     $fileName = preg_replace('/[^\w\._]+/', '_', $fileName);
@@ -185,17 +185,17 @@ class Zend_Controller_Action_Helper_FileUpload extends Zend_Controller_Action_He
     return '{"jsonrpc" : "2.0", "result" : null}';
   }
 
-  public function getUploadNames($opt)
+  public function moveAndGetFileNames($opt)
   {
     $targetDir = $sourceDir = $thumbnails = '';
     if (isset($opt['targetDir']))  $targetDir = $opt['targetDir'];
     if (isset($opt['sourceDir']))  $sourceDir = $opt['sourceDir'];
     if (isset($opt['thumbnails'])) $thumbnails = $opt['thumbnails'];
-    
+
     $month = date("Ym");
 
     if (!file_exists($targetDir . '/' . $month . '/')) {
-      mkdir($targetDir . '/' . $month . '/');
+      @mkdir($targetDir . '/' . $month . '/');
     }
 
     $targetDir = $targetDir . '/' . $month;
@@ -214,113 +214,155 @@ class Zend_Controller_Action_Helper_FileUpload extends Zend_Controller_Action_He
       if ($add) array_push($thumbnails,array('append' => ''));
     }
 
-    $count = $this->getRequest()->getPost("uploader_count") != '' ? intval($this->getRequest()->getPost("uploader_count")) : 0;
-
+    $fields = array('uploaded','uploader');
     $names = array();
-    for($i = 0; $i < $count; $i++) {
-      if ($this->getRequest()->getPost('uploader_' . $i . '_status') != 'done') continue;
 
-      $file = $this->getRequest()->getPost('uploader_' . $i . '_tmpname');
-      $id = preg_replace('/^(.+)\.[^\.]+$/','$1',$file);
-      $ext = preg_replace('/^.+\.([^\.]+)$/','$1',$file);
-      $crop = $this->getRequest()->getPost('crop_' . $id);
-      $caption = $this->getRequest()->getPost('caption_' . $id);
+    foreach ($fields as $f) {
+      $count = intval($this->getRequest()->getPost("${f}_count",0));
 
-      $sourceFile = $sourceDir . '/' . $file;
+      for($i = 0; $i < $count; $i++) {
+        if ($this->getRequest()->getPost("${f}_${i}_status", 'done') != 'done') continue;
 
-      list($w, $h, $type) = getimagesize($sourceFile);
+        $file = $this->getRequest()->getPost("${f}_${i}_tmpname");
+        $id = preg_replace('/^(.+)\.[^\.]+$/','$1',$file);
+        $ext = preg_replace('/^.+\.([^\.]+)$/','$1',$file);
+        $crop = $this->getRequest()->getPost("crop_${id}");
+        $caption = $this->getRequest()->getPost("caption_${id}");
+        $n = array(
+          'name' => $month . '/' . $id . '.' . $ext,
+          'caption' => $caption
+        );
 
-      $x1 = $y1 = $x2 = $y2 = '';
-      if ($crop != '') {
-        list($x1,$y1,$x2,$y2) = preg_split('/;/',$crop);
-      }
-
-      if (!preg_match('/^\d+$/',$x1)) $x1 = 0;
-      if (!preg_match('/^\d+$/',$y1)) $y1 = 0;
-      if (!preg_match('/^\d+$/',$x2)) $x2 = $w;
-      if (!preg_match('/^\d+$/',$y2)) $y2 = $h;
-
-      if ($type == 1) $sourceImg = imagecreatefromgif($sourceFile);
-      elseif ($type == 3) $sourceImg = imagecreatefrompng($sourceFile);
-      else $sourceImg = imagecreatefromjpeg($sourceFile);
-
-      $n = array(
-        'name' => $month . '/' . $id . '.' . $ext,
-        'caption' => $caption
-      );
-
-      foreach($thumbnails as $thumb) {
-        if (!isset($thumb['width']) || preg_match('/\D/',$thumb['width'])) $thumb['width'] = $x2 - $x1;
-        if (!isset($thumb['height']) || preg_match('/\D/',$thumb['height'])) $thumb['height'] = $y2 - $y1;
-
-        $sourceW = $x2 - $x1;
-        $sourceH = $y2 - $y1;
-
-        $sourceRatio = $sourceW/$sourceH;
-        $dstRatio = $thumb['width']/$thumb['height'];
-
-        $tempX1 = $x1;
-        $tempY1 = $y1;
-        if ($sourceRatio > $dstRatio) {
-          $tempW = round($sourceH * $dstRatio);
-          $tempX1 += round(($sourceW-$tempW)/2);
-          $sourceW = $tempW;
-        } else if($sourceRatio < $dstRatio) {
-          $tempH = round($sourceW / $dstRatio);
-          $tempY1 += round(($sourceH-$tempH)/2);
-          $sourceH = $tempH;
+        if ($this->getRequest()->getPost("status_${id}") == 'drop') {
+          @unlink($sourceDir . '/' . $file);
+          if ($f == 'uploaded') {
+            @unlink($targetDir . '/' . $file); //remove when the file has been moved (edit mode)
+          }
+          continue;
+        }
+        if ($this->getRequest()->getPost("status_${id}") == 'skip') {
+          array_push($names,$n);
+          continue;
         }
 
-        //echo "$tempX1 ; $tempY1 ; $x2 ; $y2 ; $sourceW ; $sourceH ; " . $thumb['width'] . ' ; ' . $thumb['height'] . '<br/>';
-
-        $targetImg = imagecreatetruecolor($thumb['width'], $thumb['height']);
-        imagecopyresampled($targetImg,$sourceImg,0,0,$tempX1,$tempY1,$thumb['width'], $thumb['height'],$sourceW,$sourceH);
-
-        if (!isset($thumb['append'])) $thumb['append'] = '';
-        $newName = $targetDir . '/' . $id . $thumb['append'] . '.' . $ext;
-
-        touch($newName);
-
-        if ($type == 1) imagegif($targetImg, $newName);
-        elseif ($type == 3) imagepng($targetImg, $newName);
-        else imagejpeg($targetImg, $newName, 90);
-
-        if ($thumb['append'] != '') {
-          $n['name_' . $thumb['append']] = $month . '/' . $id . $thumb['append'] . '.' . $ext;
+        if (file_exists($sourceDir . '/' . $file)) {
+          $sourceFile = $sourceDir . '/' . $file;
+        } else if (file_exists($targetDir . '/' . $file)) {
+          $sourceFile = $targetDir . '/' . $file;
+        } else {
+          continue;
         }
-        imagedestroy($targetImg);
-      }
-      imagedestroy($sourceImg);
 
-      array_push($names,$n);
+        list($w, $h, $type) = getimagesize($sourceFile);
+
+        $x1 = $y1 = $x2 = $y2 = '';
+        if ($crop != '') {
+          list($x1,$y1,$x2,$y2) = preg_split('/;/',$crop);
+        }
+
+        if (!preg_match('/^\d+$/',$x1)) $x1 = 0;
+        if (!preg_match('/^\d+$/',$y1)) $y1 = 0;
+        if (!preg_match('/^\d+$/',$x2)) $x2 = $w;
+        if (!preg_match('/^\d+$/',$y2)) $y2 = $h;
+
+        if ($type == 1) $sourceImg = imagecreatefromgif($sourceFile);
+        elseif ($type == 3) $sourceImg = imagecreatefrompng($sourceFile);
+        else $sourceImg = imagecreatefromjpeg($sourceFile);
+
+        foreach($thumbnails as $thumb) {
+          if (!isset($thumb['width']) || preg_match('/\D/',$thumb['width'])) $thumb['width'] = $x2 - $x1;
+          if (!isset($thumb['height']) || preg_match('/\D/',$thumb['height'])) $thumb['height'] = $y2 - $y1;
+
+          $sourceW = $x2 - $x1;
+          $sourceH = $y2 - $y1;
+
+          $sourceRatio = $sourceW/$sourceH;
+          $dstRatio = $thumb['width']/$thumb['height'];
+
+          $tempX1 = $x1;
+          $tempY1 = $y1;
+          if ($sourceRatio > $dstRatio) {
+            $tempW = round($sourceH * $dstRatio);
+            $tempX1 += round(($sourceW-$tempW)/2);
+            $sourceW = $tempW;
+          } else if($sourceRatio < $dstRatio) {
+            $tempH = round($sourceW / $dstRatio);
+            $tempY1 += round(($sourceH-$tempH)/2);
+            $sourceH = $tempH;
+          }
+
+          //echo "$tempX1 ; $tempY1 ; $x2 ; $y2 ; $sourceW ; $sourceH ; " . $thumb['width'] . ' ; ' . $thumb['height'] . '<br/>';
+
+          $targetImg = imagecreatetruecolor($thumb['width'], $thumb['height']);
+          imagecopyresampled($targetImg,$sourceImg,0,0,$tempX1,$tempY1,$thumb['width'], $thumb['height'],$sourceW,$sourceH);
+
+          if (!isset($thumb['append'])) $thumb['append'] = '';
+          $newName = $targetDir . '/' . $id . $thumb['append'] . '.' . $ext;
+
+          @touch($newName);
+
+          if ($type == 1) imagegif($targetImg, $newName);
+          elseif ($type == 3) imagepng($targetImg, $newName);
+          else imagejpeg($targetImg, $newName, 90);
+
+          if ($thumb['append'] != '') {
+            $n['name_' . $thumb['append']] = $month . '/' . $id . $thumb['append'] . '.' . $ext;
+          }
+          imagedestroy($targetImg);
+        }
+        imagedestroy($sourceImg);
+
+        array_push($names,$n);
+      }
     }
 
     return $names;
   }
 
-  public function getEditUploaded($row,$fields = array())
+  public function getFieldsOfUploadedFiles($row = null,$fields = array())
   {
     $opt = array('name' => 'name','caption' => 'caption');
 
     $opt = array_merge($opt, $fields);
 
     $images = array();
-    for ($i = 0; $i < count($row); $i++) {
-      if ($this->getRequest()->getPost('uploaded_' . $i . '_tmpname') != '') {
-        $row[$i][$opt['name']] = $this->getRequest()->getPost('uploaded_' . $i . '_tmpname');
-        $row[$i][$opt['caption']] = $this->getRequest()->getPost('caption_' . preg_replace('/^.+\/(.+)\.[^\.]+$/','$1',$r[$i][$opt['name']]));
-      }
-      $id = preg_replace('/^.+\/(.+)\.[^\.]+$/','$1',$row[$i][$opt['name']]);
-      $item = array(
-        'i' => $i,
-        'id' => $id,
-        'uploaded_' . $i . '_tmpname' => $row[$i][$opt['name']],
-        'status_'  . $id => $this->getRequest()->getPost('status_' . $id),
-        'crop_'    . $id => $this->getRequest()->getPost('crop_' . $id),
-        'caption_' . $id => $row[$i][$opt['caption']]
-      );
 
-      array_push($images, $item);
+    if (!is_null($row)) {
+      for ($i = 0; $i < count($row); $i++) {
+        $file = $row[$i][$opt['name']];
+        $caption = $row[$i][$opt['caption']];
+        $id = preg_replace('/^.+\/(.+)\.[^\.]+$/','$1',$file);
+
+        $item = array(
+          'uploaded_' . $i . '_tmpname' => $file,
+          'uploaded_' . $i . '_status'  => '',
+          'status_'  . $id => 'ok',
+          'crop_'    . $id => '',
+          'caption_' . $id => $caption
+        );
+
+        $images[$id] = $item;
+      }
+    }
+
+    $fields = array('uploaded','uploader');
+    $k = count($images);
+    foreach ($fields as $f) {
+      $count = intval($this->getRequest()->getPost("${f}_count",0));
+
+      for($i = 0; $i < $count; $i++) {
+        $file = $this->getRequest()->getPost("${f}_${i}_tmpname");
+        $id = preg_replace('/^(.+\/)?(.+)\.[^\.]+$/','$2',$file);
+        $item = array(
+          'uploaded_' . $k . '_tmpname' => $file,
+          'uploaded_' . $k . '_status'  => $this->getRequest()->getPost("${f}_${i}_status"),
+          'status_'  . $id => $this->getRequest()->getPost('status_' . $id),
+          'crop_'    . $id => $this->getRequest()->getPost('crop_' . $id),
+          'caption_' . $id => $this->getRequest()->getPost('caption_' . $id)
+        );
+        $images[$id] = $item;
+        $k++;
+      }
     }
 
     return $images;

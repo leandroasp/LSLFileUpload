@@ -22,21 +22,7 @@
         </div>
         <?php echo $this->form->my_upload_count ?>
         <ul class="thumbnails" id="thumbnails">
-          <input type="hidden" name="my_upload_count" value="<?php echo count($this->thumbnails) ?>" id="my_upload_count">
-<?php foreach ($this->thumbnails as $thumb): ?>
-          <li class="span2 <?php echo $thumb['id'] ?>">
-            <div class="thumbnail">
-              <input type="hidden" name="uploaded_<?php echo $thumb['i'] ?>_tmpname" value="<?php echo $thumb['uploaded_' . $thumb['i'] . '_tmpname'] ?>" />
-              <input type="hidden" name="status_<?php echo $thumb['id'] ?>" value="<?php echo $thumb['status_' . $thumb['id']] ?>" />
-              <input type="hidden" name="crop_<?php echo $thumb['id'] ?>" value="<?php echo $thumb['crop_' . $thumb['id']] ?>" />
-              <img src="<?php echo $this->baseUrl('/files/' . $thumb['uploaded_' . $thumb['i'] . '_tmpname']) ?>" width="160" alt="" class="img_<?php echo $thumb['id'] ?>" />
-              <div class="caption">
-                <textarea name="caption_<?php echo $thumb['id'] ?>" class="my-caption hidden"><?php echo $thumb['caption_' . $thumb['id']] ?></textarea>
-                <p><a href="#" class="btn btn-mini btn-info fn-crop">Crop</a> <a href="#" class="btn btn-mini btn-info fn-caption">Caption</a></p>
-              </div>
-            </div>
-          </li>
-<?php endforeach; ?>
+<?php echo $this->showFilesUploaded($this->thumbnails); ?>
         </ul>
 <pre>
 <?php print_r($this->thumbnails); ?>

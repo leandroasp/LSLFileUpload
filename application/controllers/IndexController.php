@@ -52,7 +52,7 @@ class IndexController extends Zend_Controller_Action
   {
     $form = new Application_Form_Example();
     if ($form->isValid($this->getRequest()->getPost())) {
-      $names = $this->getHelper('FileUpload')->getUploadNames(
+      $names = $this->getHelper('FileUpload')->moveAndGetFileNames(
         array(
           'targetDir' => realpath(APPLICATION_PATH . "/../public/files"),
           'sourceDir' => realpath(APPLICATION_PATH . "/../public/files/temp"),
@@ -65,6 +65,9 @@ class IndexController extends Zend_Controller_Action
       echo '</pre>';
     } else {
       $this->view->form = $form;
+
+      $this->view->thumbnails = $this->getHelper('FileUpload')->getFieldsOfUploadedFiles();
+
       return $this->render('index');
     }
     echo '<pre>';
@@ -77,7 +80,7 @@ class IndexController extends Zend_Controller_Action
     //simulating data from the database
     $row = array(
       array('img' => '201208/p173soqujqthsgli15i31avc18dm3.jpg','caption' => 'Teste1'),
-      array('img' => '201208/p173v7ssb716cgfnootnmn51jsj3g.jpg','caption' => 'Teste2'),
+      array('img' => '201208/p173v7ssb716cgfnootnmn51jsj3.jpg','caption' => 'Teste2'),
     );
 
     $form = new Application_Form_Example(array('id' => 1));
@@ -103,8 +106,8 @@ class IndexController extends Zend_Controller_Action
       }
     } else {
       $form->populate(array(
-        'name'  => 'Leandro Sales',
-        'email' => 'leandroasp@gmail.com'
+        'name'  => 'My Name',
+        'email' => 'name@mail.com'
       ));
     }
 
