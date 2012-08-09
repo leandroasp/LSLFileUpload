@@ -198,8 +198,6 @@ class Zend_Controller_Action_Helper_FileUpload extends Zend_Controller_Action_He
       @mkdir($targetDir . '/' . $month . '/');
     }
 
-    $targetDir = $targetDir . '/' . $month;
-
     if ($thumbnails == '' || !is_array($thumbnails) || count($thumbnails) == 0) {
       $thumbnails = array(array('append' => ''));
     } else {
@@ -221,22 +219,29 @@ class Zend_Controller_Action_Helper_FileUpload extends Zend_Controller_Action_He
       $count = intval($this->getRequest()->getPost("${f}_count",0));
 
       for($i = 0; $i < $count; $i++) {
-        if ($this->getRequest()->getPost("${f}_${i}_status", 'done') != 'done') continue;
+        $status = $this->getRequest()->getPost("${f}_${i}_status", 'done');
+        if ($status != 'done' && $status != '') continue;
 
         $file = $this->getRequest()->getPost("${f}_${i}_tmpname");
-        $id = preg_replace('/^(.+)\.[^\.]+$/','$1',$file);
+        $id = preg_replace('/^(.+\/)?(.+)\.[^\.]+$/','$2',$file);
+        $path = preg_replace('/^(.+\/)?(.+)\.[^\.]+$/','$1',$file);
         $ext = preg_replace('/^.+\.([^\.]+)$/','$1',$file);
         $crop = $this->getRequest()->getPost("crop_${id}");
         $caption = $this->getRequest()->getPost("caption_${id}");
+        
+        if ($path == '') $path = $month . '/';
+
         $n = array(
-          'name' => $month . '/' . $id . '.' . $ext,
+          'name' => $path . $id . '.' . $ext,
           'caption' => $caption
         );
 
         if ($this->getRequest()->getPost("status_${id}") == 'drop') {
           @unlink($sourceDir . '/' . $file);
           if ($f == 'uploaded') {
-            @unlink($targetDir . '/' . $file); //remove when the file has been moved (edit mode)
+            foreach($thumbnails as $thumb) {
+              @unlink($targetDir . '/' . $path . $id . $thumb['append'] . '.' . $ext); //remove when the file has been moved (edit mode)
+            }
           }
           continue;
         }
@@ -297,7 +302,7 @@ class Zend_Controller_Action_Helper_FileUpload extends Zend_Controller_Action_He
           imagecopyresampled($targetImg,$sourceImg,0,0,$tempX1,$tempY1,$thumb['width'], $thumb['height'],$sourceW,$sourceH);
 
           if (!isset($thumb['append'])) $thumb['append'] = '';
-          $newName = $targetDir . '/' . $id . $thumb['append'] . '.' . $ext;
+          $newName = $targetDir . '/' . $path . $id . $thumb['append'] . '.' . $ext;
 
           @touch($newName);
 
@@ -306,7 +311,7 @@ class Zend_Controller_Action_Helper_FileUpload extends Zend_Controller_Action_He
           else imagejpeg($targetImg, $newName, 90);
 
           if ($thumb['append'] != '') {
-            $n['name_' . $thumb['append']] = $month . '/' . $id . $thumb['append'] . '.' . $ext;
+            $n['name_' . $thumb['append']] = $path . $id . $thumb['append'] . '.' . $ext;
           }
           imagedestroy($targetImg);
         }
@@ -336,7 +341,7 @@ class Zend_Controller_Action_Helper_FileUpload extends Zend_Controller_Action_He
         $item = array(
           'uploaded_' . $i . '_tmpname' => $file,
           'uploaded_' . $i . '_status'  => '',
-          'status_'  . $id => 'ok',
+          'status_'  . $id => 'skip',
           'crop_'    . $id => '',
           'caption_' . $id => $caption
         );

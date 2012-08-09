@@ -46,6 +46,10 @@ class IndexController extends Zend_Controller_Action
   {
     $form = new Application_Form_Example();
     $this->view->form = $form;
+    
+    $month = '042012';
+    $month = preg_replace('/^((.+)\/)?(.+)\.[^\.]+$/','$2','asdfg123456asdfg.jpg') || $month;
+    echo $month;
   }
 
   public function createAction()
@@ -86,7 +90,7 @@ class IndexController extends Zend_Controller_Action
     $form = new Application_Form_Example(array('id' => 1));
     if ($this->getRequest()->isPost()) {
       if ($form->isValid($this->getRequest()->getPost())) {
-        $names = $this->getHelper('FileUpload')->getUploadNames(
+        $names = $this->getHelper('FileUpload')->moveAndGetFileNames(
           array(
             'targetDir' => realpath(APPLICATION_PATH . "/../public/files"),
             'sourceDir' => realpath(APPLICATION_PATH . "/../public/files/temp"),
@@ -101,8 +105,6 @@ class IndexController extends Zend_Controller_Action
         print_r($_REQUEST);
         echo '</pre>';
         return $this->render('create');
-      } else {
-
       }
     } else {
       $form->populate(array(
@@ -111,7 +113,7 @@ class IndexController extends Zend_Controller_Action
       ));
     }
 
-    $this->view->thumbnails = $this->getHelper('FileUpload')->getEditUploaded($row, array('name' => 'img'));
+    $this->view->thumbnails = $this->getHelper('FileUpload')->getFieldsOfUploadedFiles($row, array('name' => 'img'));
 
     $this->view->form = $form;
   }

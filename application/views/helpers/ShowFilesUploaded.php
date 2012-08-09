@@ -42,9 +42,10 @@ class Zend_View_Helper_ShowFilesUploaded extends Zend_View_Helper_Abstract
 
       $return .= '<li class="span2 ' . $id . '">' . PHP_EOL;
       $return .= '  <div class="thumbnail">' . PHP_EOL;
+      $return .= '    <a href="#" class="btn btn-inverse btn-mini my-btn-close fn-close" title="Remove file"><i class="icon-ok icon-white"></i></a>' . PHP_EOL;
       $return .= '    <input type="hidden" name="uploaded_' . $i . '_tmpname" value="' . $thumb['uploaded_' . $i . '_tmpname'] . '" />' . PHP_EOL;
       $return .= '    <input type="hidden" name="uploaded_' . $i . '_status" value="' . $thumb['uploaded_' . $i . '_status'] . '" />' . PHP_EOL;
-      $return .= '    <input type="hidden" name="status_' . $id . '" value="' . $thumb['status_' . $id] . '" />' . PHP_EOL;
+      $return .= '    <input type="hidden" name="status_' . $id . '" value="' . $thumb['status_' . $id] . '" class="fn-status" />' . PHP_EOL;
       $return .= '    <input type="hidden" name="crop_' . $id . '" value="' . $thumb['crop_' . $id] . '" />' . PHP_EOL;
       $return .= '    <img src="' . $this->view->baseUrl('/files/' . $temp . $thumb['uploaded_' . $i . '_tmpname']) . '" width="160" alt="" class="img_' . $id . '" />' . PHP_EOL;
       $return .= '    <div class="caption">' . PHP_EOL;

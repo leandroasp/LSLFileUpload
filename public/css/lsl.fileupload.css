@@ -29,11 +29,8 @@ footer {clear:both;text-align:center;line-height:30px;color:#fff;font-size:0.85e
 }
 footer a {text-decoration:underline;color: #fff;}
 
-textarea.my-caption {
-  width: 102px;
-  height: 40px;
-  position: absolute;
-  margin-top:-60px;
-}
+textarea.my-caption {width:102px;height:40px;position:absolute;margin-top:-60px;}
 .hidden {visibility: hidden;}
 ul.my-errors li {display:inline;color:red;}
+a.my-btn-close {position:absolute;margin-left:102px;}
+li.disabled {opacity:0.2;filter:alpha(opacity=20);}

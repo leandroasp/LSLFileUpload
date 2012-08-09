@@ -57,6 +57,8 @@ function LSLFileUpload(opt) {
         FileUploaded: function(up, file, info) {
           var html ='<li class="span2 ' + file.id + '">' +
                     '  <div class="thumbnail">' +
+                    '    <a href="#" class="btn btn-inverse btn-mini my-btn-close fn-close" title="Remove file"><i class="icon-ok icon-white"></i></a>' +
+                    '    <input type="hidden" name="status_' + file.id + '" value="ok" class="fn-status" />' +
                     '    <input type="hidden" name="crop_' + file.id + '" value="" />' +
                     '    <img src="' + opt.temp_dir + file.target_name + '" width="160" alt="" class="img_' + file.id + '" />';
           if (opt.with_crop || opt.with_caption) {
@@ -78,8 +80,9 @@ function LSLFileUpload(opt) {
 
           html = $(html);
           $thumbnails.append(html);
-          showHideCaption(html.find('a.fn-caption'));
-          addCropImage(html.find('a.fn-crop'));
+          if (opt.with_caption) showHideCaption(html.find('a.fn-caption'));
+          if (opt.with_crop) addCropImage(html.find('a.fn-crop'));
+          addDropFile($thumbnails.find('a.fn-close'));
           updateInputCount();
         },
         FilesRemoved: function(up, files) {
@@ -94,7 +97,7 @@ function LSLFileUpload(opt) {
   
   function updateInputCount() {
     var $upload_count = $thumbnails.find('input#my_upload_count');
-    var size = $thumbnails.find('li').size();
+    var size = $thumbnails.find('li:not(.disabled)').size();
     if ($upload_count.size() == 0) {
       $upload_count = $('<input type="hidden" name="my_upload_count" value="' + size + '" id="my_upload_count" />');
       $thumbnails.prepend($upload_count);
@@ -105,16 +108,47 @@ function LSLFileUpload(opt) {
 
   function showHideCaption($element) {
     $element.click(function() {
-      $(this).parent().prev().toggleClass('hidden');
+      var $p = $(this).parent();
+      if (!$p.parent().parent().parent().hasClass('disabled')) {
+        $p.prev().toggleClass('hidden');
+      }
       return false;
     });
   }
-  showHideCaption($thumbnails.find('a.fn-caption'));
+  if (opt.with_caption) showHideCaption($thumbnails.find('a.fn-caption'));
+
+  function addDropFile($element) {
+    $element.click(function() {
+      var $a = $(this);
+      var $li = $a.parent().parent();
+      $li.toggleClass('disabled');
+      var $input = $li.find('input.fn-status');
+      if ($li.hasClass('disabled')) {
+        var val = $input.val();
+        $input.val('drop');
+        $input.attr('data',val);
+        $a.attr('title','Activate file').find('i').removeClass('icon-ok').addClass('icon-remove');
+      } else {
+        var val = $input.attr('data');
+        $input.val(val);
+        $input.removeAttr('data');
+        $a.attr('title','Remove file').find('i').removeClass('icon-remove').addClass('icon-ok');
+      }
+
+      updateInputCount();
+      return false;
+    });
+  }
+  addDropFile($thumbnails.find('a.fn-close'));
 
   var dialogsInPage = new Array();
   function addCropImage($element) {
     $element.click(function() {
-      var $img = $(this).parent().parent().prev();
+      var $div = $(this).parent().parent();
+      if ($div.parent().parent().hasClass('disabled')) {
+        return false;
+      }
+      var $img = $div.prev();
       var $input = $img.prev();
       var c = $img.attr('class');
 
@@ -147,6 +181,7 @@ function LSLFileUpload(opt) {
               $(this).Jcrop({
                 onSelect: function(c) {
                   $input.val(Math.round(c.x) + ';' + Math.round(c.y) + ';' + Math.round(c.x2) + ';' + Math.round(c.y2));
+                  $div.parent().find('input.fn-status').val('ok');
                 },
                 setSelect: coords,
                 aspectRatio: opt.aspect_ratio
@@ -169,5 +204,5 @@ function LSLFileUpload(opt) {
       return false;
     });
   }
-  addCropImage($thumbnails.find('a.fn-crop'));
+  if (opt.with_crop) addCropImage($thumbnails.find('a.fn-crop'));
 }
