@@ -155,21 +155,25 @@ class Zend_Controller_Action_Helper_FileUpload extends Zend_Controller_Action_He
           if ($height <= 0 || $height > $h) $height = $h;
 
           $x = $y = 0;
-
-          $sourceRatio = $w/$h;
-          $dstRatio = $width/$height;
-          if ($sourceRatio > $dstRatio) {
-            $tempW = round($h * $dstRatio);
-            $x1 = round(($w-$tempW)/2);
-            $w = $tempW;
-          } else if($sourceRatio < $dstRatio) {
-            $tempH = round($w / $dstRatio);
-            $y = round(($h-$tempH)/2);
-            $h = $tempH;
+          
+          if ($w > $width) {
+            $tempH = $width * $h / $w;
+            if ($tempH > $height) {
+              $width = $height * $w / $h;
+            } else {
+              $height = $tempH;
+            }
+          } else if ($h > $height) {
+            $tempW = $height * $w / $h;
+            if ($tempW > $width) {
+              $height = $width * $h / $w;
+            } else {
+              $width = $tempW;
+            }
           }
 
           $targetImg = imagecreatetruecolor($width, $height);
-          imagecopyresampled($targetImg,$sourceImg,0,0,$x,$y,$width,$height,$w,$h);
+          imagecopyresampled($targetImg,$sourceImg,0,0,0,0,$width,$height,$w,$h);
 
           if ($type == 1) imagegif($targetImg, $filePath);
           elseif ($type == 3) imagepng($targetImg, $filePath);
