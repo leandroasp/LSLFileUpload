@@ -46,10 +46,6 @@ class IndexController extends Zend_Controller_Action
   {
     $form = new Application_Form_Example();
     $this->view->form = $form;
-    
-    $month = '042012';
-    $month = preg_replace('/^((.+)\/)?(.+)\.[^\.]+$/','$2','asdfg123456asdfg.jpg') || $month;
-    echo $month;
   }
 
   public function createAction()
