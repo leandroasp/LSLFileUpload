@@ -23,14 +23,20 @@
 
 class Zend_View_Helper_ShowFilesUploaded extends Zend_View_Helper_Abstract
 {
-  public function showFilesUploaded($thumbnails)
+  public function showFilesUploaded($thumbnails, $options = array())
   {
+    $options = array_merge(array(
+      'withCrop' => false,
+      'withCaption' => false,
+      'isImage' => false
+    ), $options);
+
     if (is_null($thumbnails) || !is_array($thumbnails)) {
       $thumbnails = array();
     }
 
-    $return = '<input type="hidden" name="my_upload_count" value="' . count($thumbnails) . '" id="my_upload_count" />' . PHP_EOL;
-    $return .= '<input type="hidden" name="uploaded_count" value="' . count($thumbnails) . '" id="uploaded_count" />' . PHP_EOL;
+    $return = '';
+    $countUpload = count($thumbnails);
 
     $i = 0;
     foreach ($thumbnails as $id => $thumb) {
@@ -40,23 +46,60 @@ class Zend_View_Helper_ShowFilesUploaded extends Zend_View_Helper_Abstract
         $temp = '';
       }
 
-      $return .= '<li class="span2 ' . $id . '">' . PHP_EOL;
+      if ($thumb['status_' . $id] == 'drop') {
+        $disabled = ' lsl-disabled';
+        $countUpload--;
+      } else {
+        $disabled = '';
+      }
+
+      $return .= '<li class="span2 ' . $id . $disabled . '">' . PHP_EOL;
       $return .= '  <div class="thumbnail">' . PHP_EOL;
-      $return .= '    <a href="#" class="btn btn-inverse btn-mini my-btn-close fn-close" title="Remove file"><i class="icon-ok icon-white"></i></a>' . PHP_EOL;
+
+      if ($disabled == '') {
+        $return .= '    <a href="#" class="btn btn-inverse btn-mini lsl-btn-close fn-close" title="Remove file"><i class="icon-ok icon-white"></i></a>' . PHP_EOL;
+      } else {
+        $return .= '    <a href="#" class="btn btn-inverse btn-mini lsl-btn-close fn-close" title="Activate file"><i class="icon-remove icon-white"></i></a>' . PHP_EOL;
+      }
+
       $return .= '    <input type="hidden" name="uploaded_' . $i . '_tmpname" value="' . $thumb['uploaded_' . $i . '_tmpname'] . '" />' . PHP_EOL;
       $return .= '    <input type="hidden" name="uploaded_' . $i . '_status" value="' . $thumb['uploaded_' . $i . '_status'] . '" />' . PHP_EOL;
       $return .= '    <input type="hidden" name="status_' . $id . '" value="' . $thumb['status_' . $id] . '" class="fn-status" />' . PHP_EOL;
-      $return .= '    <input type="hidden" name="crop_' . $id . '" value="' . $thumb['crop_' . $id] . '" />' . PHP_EOL;
-      $return .= '    <img src="' . $this->view->baseUrl('/files/' . $temp . $thumb['uploaded_' . $i . '_tmpname']) . '" width="160" alt="" class="img_' . $id . '" />' . PHP_EOL;
-      $return .= '    <div class="caption">' . PHP_EOL;
-      $return .= '      <textarea name="caption_' . $id . '" class="my-caption hidden">' . $thumb['caption_' . $id] . '</textarea>' . PHP_EOL;
-      $return .= '      <p><a href="#" class="btn btn-mini btn-info fn-crop">Crop</a> <a href="#" class="btn btn-mini btn-info fn-caption">Caption</a></p>' . PHP_EOL;
-      $return .= '    </div>' . PHP_EOL;
+
+      if ($options['withCrop'] == true) {
+        $return .= '    <input type="hidden" name="crop_' . $id . '" value="' . $thumb['crop_' . $id] . '" />' . PHP_EOL;
+      }
+
+      if ($options['isImage'] == true) {
+        $return .= '    <img src="' . $this->view->baseUrl('/files/' . $temp . $thumb['uploaded_' . $i . '_tmpname']) . '" width="160" alt="" class="img_' . $id . '" />' . PHP_EOL;
+      } else {
+        $ext = preg_replace('/^.+\.([^\.]+)$/','$1',$thumb['uploaded_' . $i . '_tmpname']);
+        $return .= '    <p class="lsl-thumbnail-noimage" title="' . $thumb['uploaded_' . $i . '_tmpname'] . '">Arquivo ' . strtoupper($ext) . '</p>' . PHP_EOL;
+      }
+
+      if ($options['withCrop'] == true || $options['withCaption'] == true) {
+        $return .= '    <div class="caption">' . PHP_EOL;
+
+        if ($options['withCaption'] == true) {
+          $return .= '      <textarea name="caption_' . $id . '" class="lsl-caption lsl-hidden">' . $thumb['caption_' . $id] . '</textarea>' . PHP_EOL;
+        }
+        $return .= '<p>';
+        if ($options['withCrop'] == true) {
+          $return .= '<a href="#" class="btn btn-mini btn-info fn-crop">Crop</a> ';
+        }
+        if ($options['withCaption'] == true) {
+          $return .= '<a href="#" class="btn btn-mini btn-info fn-caption">Caption</a>' . PHP_EOL;
+        }
+        $return .= '</p></div>' . PHP_EOL;
+      }
       $return .= '  </div>' . PHP_EOL;
       $return .= '</li>' . PHP_EOL;
       $i++;
     }
 
-    return $return;
+    $return1 = '<input type="hidden" name="my_upload_count" value="' . $countUpload . '" id="my_upload_count" />' . PHP_EOL;
+    $return1 .= '<input type="hidden" name="uploaded_count" value="' . count($thumbnails) . '" id="uploaded_count" />' . PHP_EOL;
+
+    return $return1 . $return;
   }
 }

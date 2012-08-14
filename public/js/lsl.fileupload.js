@@ -25,14 +25,15 @@ function LSLFileUpload(opt) {
     url: 'upload.php',
     max_file_size: '10mb',
     max_file_count: 20,
-    extensions: '',
+    file_is_image: false,
+    extensions: '*',
     base_url: '/',
     temp_dir: '/temp/',
     with_caption: false,
     with_crop: false,
     aspect_ratio: 0
   }, opt);
-  
+
   var $thumbnails = opt.thumbnails;
   $(function() {
     opt.uploader.plupload({
@@ -57,14 +58,24 @@ function LSLFileUpload(opt) {
         FileUploaded: function(up, file, info) {
           var html ='<li class="span2 ' + file.id + '">' +
                     '  <div class="thumbnail">' +
-                    '    <a href="#" class="btn btn-inverse btn-mini my-btn-close fn-close" title="Remove file"><i class="icon-ok icon-white"></i></a>' +
-                    '    <input type="hidden" name="status_' + file.id + '" value="ok" class="fn-status" />' +
-                    '    <input type="hidden" name="crop_' + file.id + '" value="" />' +
-                    '    <img src="' + opt.temp_dir + file.target_name + '" width="160" alt="" class="img_' + file.id + '" />';
+                    '    <a href="#" class="btn btn-inverse btn-mini lsl-btn-close fn-close" title="Remove file"><i class="icon-ok icon-white"></i></a>' +
+                    '    <input type="hidden" name="status_' + file.id + '" value="ok" class="fn-status" />';
+
+          if (opt.with_crop) {
+            html += '    <input type="hidden" name="crop_' + file.id + '" value="" />';
+          }
+
+          if (opt.file_is_image) {
+            html += '    <img src="' + opt.temp_dir + file.target_name + '" width="160" alt="" class="img_' + file.id + '" />';
+          } else {
+            var ext = file.target_name.replace(/^.+\.([^\.]+)$/,'$1');
+            html += '    <p class="lsl-thumbnail-noimage" title="' + file.name + '">Arquivo ' + ext.toUpperCase() + '</p>';
+          }
+
           if (opt.with_crop || opt.with_caption) {
             html += '<div class="caption">';
             if (opt.with_caption) {
-              html += '<textarea name="caption_' + file.id + '" class="my-caption hidden"></textarea>';
+              html += '<textarea name="caption_' + file.id + '" class="lsl-caption lsl-hidden"></textarea>';
             }
             html += '<p>';
             if (opt.with_crop) {
@@ -82,7 +93,7 @@ function LSLFileUpload(opt) {
           $thumbnails.append(html);
           if (opt.with_caption) showHideCaption(html.find('a.fn-caption'));
           if (opt.with_crop) addCropImage(html.find('a.fn-crop'));
-          addDropFile($thumbnails.find('a.fn-close'));
+          addDropFile(html.find('a.fn-close'));
           updateInputCount();
         },
         FilesRemoved: function(up, files) {
@@ -94,10 +105,10 @@ function LSLFileUpload(opt) {
       }
     });
   });
-  
+
   function updateInputCount() {
     var $upload_count = $thumbnails.find('input#my_upload_count');
-    var size = $thumbnails.find('li:not(.disabled)').size();
+    var size = $thumbnails.find('li:not(.lsl-disabled)').size();
     if ($upload_count.size() == 0) {
       $upload_count = $('<input type="hidden" name="my_upload_count" value="' + size + '" id="my_upload_count" />');
       $thumbnails.prepend($upload_count);
@@ -109,8 +120,8 @@ function LSLFileUpload(opt) {
   function showHideCaption($element) {
     $element.click(function() {
       var $p = $(this).parent();
-      if (!$p.parent().parent().parent().hasClass('disabled')) {
-        $p.prev().toggleClass('hidden');
+      if (!$p.parent().parent().parent().hasClass('lsl-disabled')) {
+        $p.prev().toggleClass('lsl-hidden');
       }
       return false;
     });
@@ -121,9 +132,9 @@ function LSLFileUpload(opt) {
     $element.click(function() {
       var $a = $(this);
       var $li = $a.parent().parent();
-      $li.toggleClass('disabled');
+      $li.toggleClass('lsl-disabled');
       var $input = $li.find('input.fn-status');
-      if ($li.hasClass('disabled')) {
+      if ($li.hasClass('lsl-disabled')) {
         var val = $input.val();
         $input.val('drop');
         $input.attr('data',val);
@@ -145,12 +156,14 @@ function LSLFileUpload(opt) {
   function addCropImage($element) {
     $element.click(function() {
       var $div = $(this).parent().parent();
-      if ($div.parent().parent().hasClass('disabled')) {
+      if ($div.parent().parent().hasClass('lsl-disabled')) {
         return false;
       }
       var $img = $div.prev();
       var $input = $img.prev();
       var c = $img.attr('class');
+
+      if ($img.get(0).tagName.toLowerCase() != 'img') return false;
 
       var $newImg = null;
       if (dialogsInPage[c]) {

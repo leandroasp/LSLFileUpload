@@ -339,10 +339,15 @@ class Zend_Controller_Action_Helper_FileUpload extends Zend_Controller_Action_He
     if (!is_null($row)) {
       for ($i = 0; $i < count($row); $i++) {
         $file = $row[$i][$opt['name']];
-        $caption = $row[$i][$opt['caption']];
+        if (isset($row[$i][$opt['caption']])) {
+          $caption = $row[$i][$opt['caption']];
+        } else {
+          $caption = '';
+        }
         $id = preg_replace('/^.+\/(.+)\.[^\.]+$/','$1',$file);
 
         $item = array(
+          'i' => $i,
           'uploaded_' . $i . '_tmpname' => $file,
           'uploaded_' . $i . '_status'  => '',
           'status_'  . $id => 'skip',
@@ -362,15 +367,21 @@ class Zend_Controller_Action_Helper_FileUpload extends Zend_Controller_Action_He
       for($i = 0; $i < $count; $i++) {
         $file = $this->getRequest()->getPost("${f}_${i}_tmpname");
         $id = preg_replace('/^(.+\/)?(.+)\.[^\.]+$/','$2',$file);
+
+        if (isset($images[$id])) {
+          $index = $images[$id]['i'];
+        } else {
+          $index = $k++;
+        }
+
         $item = array(
-          'uploaded_' . $k . '_tmpname' => $file,
-          'uploaded_' . $k . '_status'  => $this->getRequest()->getPost("${f}_${i}_status"),
+          'uploaded_' . $index . '_tmpname' => $file,
+          'uploaded_' . $index . '_status'  => $this->getRequest()->getPost("${f}_${i}_status"),
           'status_'  . $id => $this->getRequest()->getPost('status_' . $id),
           'crop_'    . $id => $this->getRequest()->getPost('crop_' . $id),
           'caption_' . $id => $this->getRequest()->getPost('caption_' . $id)
         );
         $images[$id] = $item;
-        $k++;
       }
     }
 

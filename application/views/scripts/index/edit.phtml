@@ -22,7 +22,11 @@
         </div>
         <?php echo $this->form->my_upload_count ?>
         <ul class="thumbnails" id="thumbnails">
-<?php echo $this->showFilesUploaded($this->thumbnails); ?>
+<?php echo $this->showFilesUploaded($this->thumbnails, array(
+  'isImage' => true,
+  'withCrop' => true,
+  'withCaption' => true
+)); ?>
         </ul>
         <div class="form-actions">
           <button type="submit" class="btn btn-primary">Send</button>

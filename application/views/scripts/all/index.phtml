@@ -1,5 +1,5 @@
     <div class="page-header">
-      <h1>Send Photos</h1>
+      <h1>Send any file type</h1>
     </div>
     <form accept-charset="UTF-8" action="<?php echo $this->url(array('action' => 'create')); ?>" class="form-vertical" id="formUpload" method="post" novalidate="novalidate">
       <fieldset>
@@ -22,11 +22,7 @@
         </div>
         <?php echo $this->form->my_upload_count ?>
         <ul class="thumbnails" id="thumbnails">
-<?php echo $this->showFilesUploaded($this->thumbnails, array(
-  'isImage' => true,
-  'withCrop' => true,
-  'withCaption' => true
-)); ?>
+<?php echo $this->showFilesUploaded($this->files); ?>
         </ul>
         <div class="form-actions">
           <button type="submit" class="btn btn-primary">Send</button>
@@ -38,16 +34,11 @@
 LSLFileUpload({
   uploader: $("#uploader"),
   thumbnails: $('#thumbnails'),
-  file_is_image: true,
   url: '<?php echo $this->url(array('action' => 'upload')); ?>',
   max_file_size: '10mb',
   max_file_count: 2,
-  extensions: 'jpg,gif,png',
   base_url: '<?php echo $this->baseUrl() ?>',
-  temp_dir: '<?php echo $this->baseUrl('/files/temp/') ?>',
-  with_caption: true,
-  with_crop: true,
-  aspect_ratio: 4/3
+  temp_dir: '<?php echo $this->baseUrl('/files/temp/') ?>'
 });
 -->
 </script>

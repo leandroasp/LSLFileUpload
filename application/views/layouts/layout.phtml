@@ -4,7 +4,7 @@
  * Author: Leandro Sales <leandroasp@gmail.com>
  * https://github.com/leandroasp/LSLFileUpload
  * Copyright (c) 2012
- * -------------------------------------------------------------------
+ *
  * This file is part of LSL FileUpload.
  *
  * LSL FileUpload is free software: you can redistribute it and/or modify
@@ -51,13 +51,26 @@
   <script type="text/javascript" src="<?php echo $this->baseUrl('/js/jquery.ui.plupload/jquery.ui.plupload.js') ?>"></script>
   <script type="text/javascript" src="<?php echo $this->baseUrl('/js/lsl.fileupload.js') ?>"></script>
   <!-- <script type="text/javascript" src="<?php echo $this->baseUrl('/js/i18n/pt-br.js') ?>"></script> -->
+
+<style>
+body {padding: 40px 0;}
+footer {clear:both;text-align:center;line-height:30px;color:#fff;font-size:0.85em;
+  background: -webkit-linear-gradient(top, #fff, #000);
+  background:    -moz-linear-gradient(top, #fff, #000);
+  background:     -ms-linear-gradient(top, #fff, #000);
+  background:         linear-gradient(top, #fff 50%, #000);
+}
+footer a {text-decoration:underline;color: #fff;}
+
+ul.my-errors li {display:inline;color:red;}
+</style>
 </head>
 <body>
   <div class="navbar navbar-fixed-top">
     <div class="navbar-inner">
       <div class="container">
         <a class="brand" href="<?php echo $this->url(array('controller' => 'index'),'default',true); ?>">Example Upload</a>
-        <ul class="nav my-nav" id="menu">
+        <ul class="nav" id="menu">
           <li><a href="<?php echo $this->url(array('controller' => 'index'),'default',true); ?>">Home</a></li>
         </ul>
       </div>
