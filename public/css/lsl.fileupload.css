@@ -25,4 +25,4 @@ textarea.lsl-caption {width:102px;height:40px;position:absolute;margin-top:-60px
 textarea.lsl-hidden {visibility:hidden;}
 a.lsl-btn-close {position:absolute;margin-left:102px;}
 li.lsl-disabled {opacity:0.2;filter:alpha(opacity=20);}
-p.lsl-thumbnail-noimage {overflow:hidden;width:130px;height:60px;line-height:60px;text-align:center;margin:0;background:#EEE;}
+p.lsl-thumbnail-noimage {overflow:hidden;width:130px;height:60px;line-height:60px;text-align:center;margin:0;background-color:#EEE;color:#666;}

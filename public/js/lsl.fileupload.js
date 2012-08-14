@@ -69,7 +69,7 @@ function LSLFileUpload(opt) {
             html += '    <img src="' + opt.temp_dir + file.target_name + '" width="160" alt="" class="img_' + file.id + '" />';
           } else {
             var ext = file.target_name.replace(/^.+\.([^\.]+)$/,'$1');
-            html += '    <p class="lsl-thumbnail-noimage" title="' + file.name + '">Arquivo ' + ext.toUpperCase() + '</p>';
+            html += '    <p class="lsl-thumbnail-noimage" title="Name: ' + file.name + '">' + ext.toUpperCase() + ' file</p>';
           }
 
           if (opt.with_crop || opt.with_caption) {

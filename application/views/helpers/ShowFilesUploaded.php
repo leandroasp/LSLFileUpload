@@ -74,7 +74,7 @@ class Zend_View_Helper_ShowFilesUploaded extends Zend_View_Helper_Abstract
         $return .= '    <img src="' . $this->view->baseUrl('/files/' . $temp . $thumb['uploaded_' . $i . '_tmpname']) . '" width="160" alt="" class="img_' . $id . '" />' . PHP_EOL;
       } else {
         $ext = preg_replace('/^.+\.([^\.]+)$/','$1',$thumb['uploaded_' . $i . '_tmpname']);
-        $return .= '    <p class="lsl-thumbnail-noimage" title="' . $thumb['uploaded_' . $i . '_tmpname'] . '">Arquivo ' . strtoupper($ext) . '</p>' . PHP_EOL;
+        $return .= '    <p class="lsl-thumbnail-noimage" title="Name: ' . $thumb['uploaded_' . $i . '_tmpname'] . '">' . strtoupper($ext) . ' file</p>' . PHP_EOL;
       }
 
       if ($options['withCrop'] == true || $options['withCaption'] == true) {
