@@ -26,16 +26,17 @@ class Zend_View_Helper_ShowFilesUploaded extends Zend_View_Helper_Abstract
   public function showFilesUploaded($thumbnails, $options = array())
   {
     $options = array_merge(array(
-      'withCrop' => false,
+      'id'          => 'thumbnails',
+      'withCrop'    => false,
       'withCaption' => false,
-      'isImage' => false
+      'isImage'     => false
     ), $options);
 
     if (is_null($thumbnails) || !is_array($thumbnails)) {
       $thumbnails = array();
     }
 
-    $return = '';
+    $return = '<ul class="thumbnails" id="' . $options['id'] . '">';
     $countUpload = count($thumbnails);
 
     $i = 0;
@@ -96,6 +97,8 @@ class Zend_View_Helper_ShowFilesUploaded extends Zend_View_Helper_Abstract
       $return .= '</li>' . PHP_EOL;
       $i++;
     }
+    
+    $return .= '</ul>';
 
     $return1 = '<input type="hidden" name="my_upload_count" value="' . $countUpload . '" id="my_upload_count" />' . PHP_EOL;
     $return1 .= '<input type="hidden" name="uploaded_count" value="' . count($thumbnails) . '" id="uploaded_count" />' . PHP_EOL;
